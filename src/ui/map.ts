@@ -576,6 +576,7 @@ export class Map extends Camera {
         LivePerformanceUtils.mark(LivePerformanceMarkers.create);
 
         const initialOptions = options;
+        console.log("initialOptions", initialOptions);
 
         options = extend({}, defaultOptions, options);
 
@@ -601,10 +602,12 @@ export class Map extends Camera {
             warnOnce('Antialiasing is disabled for this WebGL context to avoid browser bug: https://github.com/mapbox/mapbox-gl-js/issues/11609');
         }
 
+        // 瓦片的变换矩阵
         const transform = new Transform(options.minZoom, options.maxZoom, options.minPitch, options.maxPitch, options.renderWorldCopies);
         // @ts-expect-error - TS2345 - Argument of type 'MapOptions' is not assignable to parameter of type '{ bearingSnap: number; respectPrefersReducedMotion?: boolean; }'.
         super(transform, options);
 
+        // 一些属性初始化
         this._repaint = !!options.repaint;
         this._interactive = options.interactive;
         this._minTileCacheSize = options.minTileCacheSize;
@@ -619,7 +622,7 @@ export class Map extends Camera {
         this._isInitialLoad = true;
         this._crossSourceCollisions = options.crossSourceCollisions;
         this._collectResourceTiming = options.collectResourceTiming;
-        this._language = this._parseLanguage(options.language);
+        //this._language = this._parseLanguage(options.language);
         this._worldview = options.worldview;
         this._renderTaskQueue = new TaskQueue();
         this._domRenderTaskQueue = new TaskQueue();
@@ -677,20 +680,20 @@ export class Map extends Camera {
             warnOnce(`The map container element should be empty, otherwise the map's interactivity will be negatively impacted. If you want to display a message when WebGL is not supported, use the Mapbox GL Supported plugin instead.`);
         }
 
-        if (options.maxBounds) {
-            this.setMaxBounds(options.maxBounds);
-        }
+        // if (options.maxBounds) {
+        //     this.setMaxBounds(options.maxBounds);
+        // }
 
-        this._spriteFormat = options.spriteFormat;
+        // this._spriteFormat = options.spriteFormat;
 
-        bindAll([
-            '_onWindowOnline',
-            '_onWindowResize',
-            '_onVisibilityChange',
-            '_onMapScroll',
-            '_contextLost',
-            '_contextRestored'
-        ], this);
+        // bindAll([
+        //     '_onWindowOnline',
+        //     '_onWindowResize',
+        //     '_onVisibilityChange',
+        //     '_onMapScroll',
+        //     '_contextLost',
+        //     '_contextRestored'
+        // ], this);
 
         this._setupContainer();
 
@@ -725,26 +728,27 @@ export class Map extends Camera {
             throw new Error(`Failed to initialize WebGL.`);
         }
 
-        this.on('move', () => this._update(false));
-        this.on('moveend', () => this._update(false));
-        this.on('zoom', () => this._update(true));
+        // this.on('move', () => this._update(false));
+        // this.on('moveend', () => this._update(false));
+        // this.on('zoom', () => this._update(true));
 
-        this._fullscreenchangeEvent = 'onfullscreenchange' in document ?
-            'fullscreenchange' :
-            'webkitfullscreenchange';
+        // this._fullscreenchangeEvent = 'onfullscreenchange' in document ?
+        //     'fullscreenchange' :
+        //     'webkitfullscreenchange';
 
-        window.addEventListener('online', this._onWindowOnline, false);
-        window.addEventListener('resize', this._onWindowResize, false);
-        window.addEventListener('orientationchange', this._onWindowResize, false);
-        window.addEventListener(this._fullscreenchangeEvent, this._onWindowResize, false);
-        window.addEventListener('visibilitychange', this._onVisibilityChange, false);
+        // window.addEventListener('online', this._onWindowOnline, false);
+        // window.addEventListener('resize', this._onWindowResize, false);
+        // window.addEventListener('orientationchange', this._onWindowResize, false);
+        // window.addEventListener(this._fullscreenchangeEvent, this._onWindowResize, false);
+        // window.addEventListener('visibilitychange', this._onVisibilityChange, false);
 
         // @ts-expect-error - TS2345 - Argument of type 'MapOptions' is not assignable to parameter of type '{ interactive: boolean; pitchWithRotate: boolean; clickTolerance: number; bearingSnap: number; }'.
         this.handlers = new HandlerManager(this, options);
 
-        this._localFontFamily = options.localFontFamily;
-        this._localIdeographFontFamily = options.localIdeographFontFamily;
+      //  this._localFontFamily = options.localFontFamily;
+      //  this._localIdeographFontFamily = options.localIdeographFontFamily;
 
+      
         if (options.style || !options.testMode) {
             const style = options.style || config.DEFAULT_STYLE;
             this.setStyle(style, {
@@ -754,60 +758,60 @@ export class Map extends Camera {
             });
         }
 
-        if (options.projection) {
-            this.setProjection(options.projection);
-        }
+        // if (options.projection) {
+        //     this.setProjection(options.projection);
+        // }
 
-        this.indoor = new IndoorManager(this);
+        // this.indoor = new IndoorManager(this);
 
-        const hashName = (typeof options.hash === 'string' && options.hash) || undefined;
-        if (options.hash) this._hash = (new Hash(hashName)).addTo(this);
-        // don't set position from options if set through hash
-        if (!this._hash || !this._hash._onHashChange()) {
-            // if we set `center`/`zoom` explicitly, mark as modified even if the values match defaults
-            if (initialOptions.center != null || initialOptions.zoom != null) {
-                this.transform._unmodified = false;
-            }
+        // const hashName = (typeof options.hash === 'string' && options.hash) || undefined;
+        // if (options.hash) this._hash = (new Hash(hashName)).addTo(this);
+        // // don't set position from options if set through hash
+        // if (!this._hash || !this._hash._onHashChange()) {
+        //     // if we set `center`/`zoom` explicitly, mark as modified even if the values match defaults
+        //     if (initialOptions.center != null || initialOptions.zoom != null) {
+        //         this.transform._unmodified = false;
+        //     }
 
-            this.jumpTo({
-                center: options.center,
-                zoom: options.zoom,
-                bearing: options.bearing,
-                pitch: options.pitch
-            });
+        //     this.jumpTo({
+        //         center: options.center,
+        //         zoom: options.zoom,
+        //         bearing: options.bearing,
+        //         pitch: options.pitch
+        //     });
 
-            const bounds = options.bounds;
-            if (bounds) {
-                this.resize();
-                this.fitBounds(bounds, extend({}, options.fitBoundsOptions, {duration: 0}));
-            }
-        }
+        //     const bounds = options.bounds;
+        //     if (bounds) {
+        //         this.resize();
+        //         this.fitBounds(bounds, extend({}, options.fitBoundsOptions, {duration: 0}));
+        //     }
+        // }
 
         this.resize();
 
-        if (options.attributionControl)
-            this.addControl(new AttributionControl({customAttribution: options.customAttribution}));
+        // if (options.attributionControl)
+        //     this.addControl(new AttributionControl({customAttribution: options.customAttribution}));
 
-        this._logoControl = new LogoControl();
-        this.addControl(this._logoControl, options.logoPosition);
+        // this._logoControl = new LogoControl();
+        // this.addControl(this._logoControl, options.logoPosition);
 
-        this.on('style.load', () => {
-            if (this.transform.unmodified) {
-                this.jumpTo((this.style.stylesheet as unknown));
-            }
-            this._postStyleLoadEvent();
-        });
+        // this.on('style.load', () => {
+        //     if (this.transform.unmodified) {
+        //         this.jumpTo((this.style.stylesheet as unknown));
+        //     }
+        //     this._postStyleLoadEvent();
+        // });
 
-        this.on('data', (event) => {
-            this._update(event.dataType === 'style');
-            this.fire(new Event(`${event.dataType}data`, event));
-        });
+        // this.on('data', (event) => {
+        //     this._update(event.dataType === 'style');
+        //     this.fire(new Event(`${event.dataType}data`, event));
+        // });
 
-        this.on('dataloading', (event) => {
-            this.fire(new Event(`${event.dataType}dataloading`, event));
-        });
+        // this.on('dataloading', (event) => {
+        //     this.fire(new Event(`${event.dataType}dataloading`, event));
+        // });
 
-        this._interactions = new InteractionSet(this);
+       // this._interactions = new InteractionSet(this);
     }
 
     /*
